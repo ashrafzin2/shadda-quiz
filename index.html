@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اختبارات القراءات الشاذة</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f3f1ea;--fg:#1d2a24;--card:#fff;--mut:#6b756f;--ok:#1f7a4d;--okb:#dff2e6;--bad:#b3261e;--badb:#fbe3e1;--ac:#0f5c46;--acf:#fff;--bd:#d9d6ca}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--fg:#e8ede9;--card:#1d2621;--mut:#9aa7a0;--ok:#6fd49b;--okb:#17372a;--bad:#ff8f87;--badb:#3d1f1d;--ac:#3fae88;--acf:#0b1410;--bd:#2f3b35}}
+:root[data-theme="dark"]{--bg:#141a17;--fg:#e8ede9;--card:#1d2621;--mut:#9aa7a0;--ok:#6fd49b;--okb:#17372a;--bad:#ff8f87;--badb:#3d1f1d;--ac:#3fae88;--acf:#0b1410;--bd:#2f3b35}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Naskh Arabic","Amiri","Traditional Arabic","Segoe UI",Tahoma,sans-serif;font-size:18px;line-height:1.8}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 2px}
+.sub{color:var(--mut);font-size:15px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;text-align:right;color:var(--fg);font:inherit;cursor:pointer}
+.card b{display:block;font-size:20px}.card span{color:var(--mut);font-size:14px}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--ac);color:var(--acf);border:0;border-radius:10px;padding:10px 16px;margin:4px 0}
+.btn.s{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.bar{height:6px;background:var(--bd);border-radius:3px;margin:10px 0}.bar i{display:block;height:100%;background:var(--ac);border-radius:3px}
+.q{font-size:21px;margin:14px 0}
+.opt{display:block;width:100%;text-align:right;background:var(--card);color:var(--fg);border:2px solid var(--bd);border-radius:10px;padding:10px 12px;margin:8px 0}
+.opt.ok{border-color:var(--ok);background:var(--okb)}.opt.no{border-color:var(--bad);background:var(--badb)}
+.fb{padding:10px 12px;border-radius:10px;margin:10px 0;font-size:17px}.fb.ok{background:var(--okb)}.fb.no{background:var(--badb)}
+.big{font-size:46px;font-weight:700;color:var(--ac);margin:6px 0}
+.wr{border-top:1px solid var(--bd);padding:8px 0;font-size:16px}
+.note{color:var(--mut);font-size:14px;margin-top:18px}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+</style>
+</head>
+<body><main id="app"></main>
+<script>
+const R=["الحسن","ابن محيصن","المطوعي","الأعمش","اليزيدي"];
+const S=["البقرة","يوسف","لقمان","التوبة","الفتح","الحجرات","القصص","يونس","هود","الحج","النجم","النحل"];
+// [الموضع، صاحب القراءة الشاذة، السورة] — من أسئلة «انسب القراءات الشاذة» في الامتحانات المرفقة
+const I=[
+["لمن أراد أن تتمُّ الرضاعة","ابن محيصن","البقرة"],
+["حاشَ الإله ما هذا بشرا","الحسن","يوسف"],
+["وفَصْلُه في عامين","الحسن","لقمان"],
+["تثاقلتم إلى الأرض","المطوعي","التوبة"],
+["وآتاهم فتحا قريبا","الحسن","الفتح"],
+["فأصلحوا بين إخوانكم","الحسن","الحجرات"],
+["فاستعانه الذي من شيعته","الحسن","القصص"],
+["ولا أدرأتكم به","الحسن","يونس"],
+["وهذا بعلي شيخ","المطوعي","هود"],
+["خاسرَ الدنيا والآخرة","ابن محيصن","الحج"],
+["والمؤتفكات أهوى","الحسن","النجم"],
+["اهبطوا مصرَ","الحسن والأعمش","البقرة"],
+["الصعقة (بدل الصاعقة)","ابن محيصن","البقرة"],
+["أينما توجهه لا يأت بخير","ابن محيصن","النحل"]];
+const rot=(a,n)=>{n%=a.length;return a.slice(n).concat(a.slice(0,n))};
+const mc=(q,c,w,e)=>({q,o:[c,...w],c,e});
+const tf=(q,t,e)=>({q,o:["صح","خطأ"],c:t?"صح":"خطأ",e,tf:1});
+const Q=[];
+I.forEach(([v,r,s],j)=>{
+ const oth=R.filter(x=>x!=r&&!r.includes(x));
+ const ws=S.filter(x=>x!=s);
+ const ov=I.filter(o=>!(o[1].includes(r)||r.includes(o[1]))).map(o=>o[0]);
+ Q.push(mc(`من صاحب القراءة الشاذة في «${v}»؟`,r,rot(oth,j).slice(0,3),`القراءة لـ${r}، في سورة ${s}.`));
+ Q.push(j%2?tf(`قراءة «${v}» منسوبة إلى ${oth[j%oth.length]}.`,0,`الصواب أنها قراءة ${r}.`):tf(`قراءة «${v}» منسوبة إلى ${r}.`,1,`صحيح، هي قراءة ${r}.`));
+ Q.push(mc(`في أي سورة وردت «${v}»؟`,s,rot(ws,j).slice(0,3),`وردت في سورة ${s}.`));
+ Q.push(mc(`أي القراءات الآتية من القراءات الشاذة لـ${r}؟`,v,rot(ov,j).slice(0,3),`«${v}» قراءة ${r}.`));
+ Q.push(j%2?tf(`وردت «${v}» في سورة ${s}.`,1,`صحيح، في سورة ${s}.`):tf(`وردت «${v}» في سورة ${ws[j%ws.length]}.`,0,`الصواب: سورة ${s}.`));
+ Q.push(j%2?tf(`«${v}» من القراءات العشر المتواترة.`,0,`لا، هي قراءة شاذة لـ${r}.`):tf(`«${v}» قراءة شاذة وليست من القراءات العشر.`,1,`صحيح، هي قراءة ${r}.`));
+});
+// أسئلة عن الكتاب ومؤلفه والقراء (غلاف الكتاب + معلومات عامة)
+Q.push(mc("مؤلف كتاب «القراءات الشاذة وتوجيهها من لغة العرب» هو:","عبد الفتاح القاضي",["مكي بن أبي طالب","ابن الجزري","ابن مجاهد"],"المؤلف: عبد الفتاح القاضي، المدير العام السابق للمعاهد الأزهرية."));
+Q.push(mc("الكتاب مقرر على:","الصف الثالث (مرحلة التخصص) بمعاهد القراءات",["الصف الأول الابتدائي","مرحلة الثانوية العامة","الصف الأول التخصص"],"المقرر على الصف الثالث، مرحلة التخصص بمعاهد القراءات."));
+Q.push(tf("الكتاب مطبوع على نفقة قطاع المعاهد الأزهرية.",1,"صحيح، كما على الغلاف."));
+Q.push(mc("القراءة الشاذة هي:","ما وراء القراءات العشر مما فقد شرطا من شروط القراءة الصحيحة",["كل قراءة خالفت رواية حفص","ما قرأ به نافع وحده","ما وافق رسم المصحف وصح سنده"],"الشاذة: ما لم تستوف شروط القراءة المقبولة."));
+Q.push(tf("القراءة الشاذة لا يُقرأ بها في الصلاة عند جمهور العلماء.",1,"صحيح عند جمهور العلماء."));
+Q.push(mc("أي الآتي ليس من شروط القراءة الصحيحة؟","موافقة قراءة نافع",["صحة السند","موافقة رسم المصحف","موافقة وجه من العربية"],"الشروط: موافقة العربية، وموافقة الرسم، وصحة السند."));
+Q.push(mc("أي هؤلاء من القراء الأربعة الزائدين على العشرة؟","الحسن البصري",["نافع","ابن كثير","حمزة"],"الأربعة: ابن محيصن والحسن واليزيدي والأعمش."));
+Q.push(mc("الحسن البصري ينسب إلى:","البصرة",["مكة","الكوفة","دمشق"],"الحسن بن يسار البصري."));
+Q.push(tf("ابن محيصن مكي، واسمه محمد بن عبد الرحمن.",1,"صحيح."));
+Q.push(tf("الأعمش كوفي، واسمه سليمان بن مهران.",1,"صحيح."));
+Q.push(mc("اليزيدي اسمه:","يحيى بن المبارك",["سليمان بن مهران","محمد بن أحمد","الحسن بن يسار"],"يحيى بن المبارك اليزيدي."));
+Q.push(tf("المطوعي من القراء العشرة المتواترين.",0,"لا، قراءاته من الشواذ وليس من العشرة."));
+Q.push(tf("المراد بتوجيه القراءة بيان وجهها في العربية وتعليلها.",1,"صحيح، وهو موضوع الكتاب."));
+Q.push(mc("توفي الحسن البصري سنة:","110هـ",["148هـ","202هـ","50هـ"],"توفي سنة 110هـ."));
+Q.push(tf("اليزيدي من الأربعة الزائدين على العشرة.",1,"صحيح."));
+Q.push(tf("عبد الفتاح القاضي هو المدير العام السابق للمعاهد الأزهرية.",1,"صحيح، كما على الغلاف."));
+const QZ=[...Array(10)].map((_,k)=>Q.filter((_,i)=>i%10==k));
+const app=document.getElementById("app");
+let st={};
+const sv=()=>{try{return JSON.parse(localStorage.getItem("shq")||"{}")}catch(e){return{}}};
+const put=(k,v)=>{try{const d=sv();d[k]=Math.max(d[k]||0,v);localStorage.setItem("shq",JSON.stringify(d))}catch(e){}};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const MSG="اختبارات القراءات الشاذة وتوجيهها — 10 اختبارات بتصحيح فوري";
+function shareBtns(){const u=encodeURIComponent(location.href),t=encodeURIComponent(MSG);
+ return `<div class="row"><a class="btn s" target="_blank" rel="noopener" href="https://wa.me/?text=${t}%20${u}">واتساب</a><a class="btn s" target="_blank" rel="noopener" href="https://t.me/share/url?url=${u}&text=${t}">تيليجرام</a>${navigator.share?'<button class="btn s" onclick="nat()">مشاركة</button>':''}</div>`}
+function nat(){try{navigator.share({title:"اختبارات القراءات الشاذة",text:MSG,url:location.href})}catch(e){}}
+function home(){const b=sv();
+ app.innerHTML=`<h1>اختبارات القراءات الشاذة</h1><p class="sub">كتاب عبد الفتاح القاضي — الصف الثالث تخصص</p>
+ <div class="grid">${QZ.map((_,k)=>`<button class="card" onclick="start(${k})"><b>اختبار ${k+1}</b><span>${b[k]!=null?"أفضل نتيجة: "+b[k]+"/10":"لم يُحل بعد"}</span></button>`).join("")}</div>
+ <h2 style="font-size:19px;margin:20px 0 4px">أرسل التطبيق لزملائك</h2>${shareBtns()}
+ <p class="note">أسئلة نسبة القراءات مأخوذة من امتحانات التخصص (2003–2020)، وتُكمَّل بأسئلة عن الكتاب والقراء.</p>`}
+function start(k){st={k,l:QZ[k].map(q=>({...q,o:q.tf?q.o:shuf(q.o)})),i:0,s:0,w:[],d:0};show()}
+function show(){const{l,i}=st,q=l[i];
+ app.innerHTML=`<button class="btn s" onclick="home()">القائمة</button><div class="sub">اختبار ${st.k+1} — سؤال ${i+1} من 10</div><div class="bar"><i style="width:${i*10}%"></i></div>
+ <div class="q">${q.q}</div>${q.o.map((o,n)=>`<button class="opt" onclick="pick(${n})">${o}</button>`).join("")}<div id="fb"></div>`}
+function pick(n){if(st.d)return;st.d=1;const q=st.l[st.i],ok=q.o[n]==q.c;
+ if(ok)st.s++;else st.w.push(q);
+ document.querySelectorAll(".opt").forEach((b,m)=>{if(q.o[m]==q.c)b.classList.add("ok");else if(m==n)b.classList.add("no")});
+ document.getElementById("fb").innerHTML=`<div class="fb ${ok?"ok":"no"}"><b>${ok?"إجابة صحيحة":"إجابة خاطئة"}</b><br>${q.e}</div><button class="btn" onclick="next()">${st.i==9?"عرض النتيجة":"التالي"}</button>`}
+function next(){st.d=0;if(st.i==9)return fin();st.i++;show()}
+function fin(){put(st.k,st.s);const m=st.s>=9?"ممتاز":st.s>=7?"جيد جدا":st.s>=5?"جيد، راجع الأخطاء":"تحتاج إلى مراجعة";
+ app.innerHTML=`<h1>النتيجة</h1><div class="big">${st.s} / 10</div><p>${m}</p>
+ <div class="row"><button class="btn" onclick="start(${st.k})">أعد الاختبار</button><button class="btn s" onclick="home()">القائمة</button></div>${shareBtns()}
+ ${st.w.length?`<h2 style="font-size:19px">مراجعة الأخطاء</h2>`+st.w.map(q=>`<div class="wr">${q.q}<br><b style="color:var(--ok)">${q.c}</b> — ${q.e}</div>`).join(""):""}`}
+home();
+</script>
+</body>
+</html>
